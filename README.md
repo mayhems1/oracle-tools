@@ -1,2 +1,3 @@
 # oracle-tools
-Oracle some useful scripts
+
+Oracle some useful scripts for daily works
