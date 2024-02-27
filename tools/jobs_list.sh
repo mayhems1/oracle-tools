@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sqlplus -s "/ as sysdba" <<EOF
+SELECT JOB_NAME, STATE, JOB_CREATOR FROM DBA_SCHEDULER_JOBS ORDER BY JOB_NAME;
+exit;
+EOF
