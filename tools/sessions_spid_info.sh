@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$#" -eq 0 ]; then
+  echo "Error: Session SPID is not defined."
+  exit 1
+fi
+
 sqlplus -S -L / as sysdba << EOF
 SELECT s.sid, s.serial#, s.username, s.machine, p.spid
 FROM v\$process p, v\$session s
