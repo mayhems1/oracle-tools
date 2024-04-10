@@ -1,0 +1,10 @@
+#!/bin/bash
+
+rman target / <<EOF
+run
+{
+CROSSCHECK ARCHIVELOG ALL;
+DELETE NOPROMPT EXPIRED ARCHIVELOG ALL;
+}
+exit;
+EOF
