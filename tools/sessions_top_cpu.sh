@@ -1,33 +1,41 @@
 #!/bin/bash
+# CPU used by ACTIVE user sessions (seconds, cumulative since logon)
+# For "who loads the DB now" use: diag_ash_top_sessions.sh 0.25
+
+# Load Oracle env for non-login shells (e.g. ssh host 'script')
+[ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
 
 sqlplus -S -L / as sysdba << EOF
+WHENEVER SQLERROR EXIT FAILURE
 SET PAGESIZE 60
 SET LINESIZE 300
 
 COLUMN username FORMAT A30
 COLUMN sid FORMAT 999,999,999
 COLUMN serial# FORMAT 999,999,999
-COLUMN "cpu usage (seconds)"  FORMAT 999,999,999.0000
+COLUMN "cpu usage (seconds)" FORMAT 999,999,999.0000
+COLUMN cpu_usage_seconds FORMAT 999,999,999.0000
 
 SELECT
    s.username,
    t.sid,
    s.serial#,
-   SUM(VALUE/100) as "cpu usage (seconds)"
+   t.value/100 AS "cpu usage (seconds)"
 FROM
    v\$session s,
    v\$sesstat t,
    v\$statname n
 WHERE
-   t.STATISTIC# = n.STATISTIC#
+   t.statistic# = n.statistic#
 AND
-   NAME like '%CPU used by this session%'
+   n.name = 'CPU used by this session'
 AND
-   t.SID = s.SID
+   t.sid = s.sid
 AND
-   s.status='ACTIVE'
+   s.status = 'ACTIVE'
 AND
-   s.username is not null
-GROUP BY username,t.sid,s.serial#
-/
+   s.username IS NOT NULL
+ORDER BY t.value DESC;
+
+EXIT
 EOF

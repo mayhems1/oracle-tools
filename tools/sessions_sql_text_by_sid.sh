@@ -1,6 +1,6 @@
 #!/bin/bash
-# Session short info by SID
-# Usage: sessions_sid_info.sh <SID>
+# Current SQL text of session by SID
+# Usage: sessions_sql_text_by_sid.sh <SID>
 
 # Load Oracle env for non-login shells (e.g. ssh host 'script')
 [ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
@@ -16,9 +16,17 @@ fi
 
 sqlplus -S -L / as sysdba << EOF
 WHENEVER SQLERROR EXIT FAILURE
-SELECT s.sid, s.serial#, s.username, s.machine, p.spid
-FROM v\$process p, v\$session s
-WHERE p.addr = s.paddr
-AND sid = $1;
+SET LINESIZE 500
+SET PAGESIZE 1000
+SET VERIFY OFF
+
+SELECT a.sql_text
+FROM   v\$sqltext a,
+       v\$session b
+WHERE  a.address = b.sql_address
+AND    a.hash_value = b.sql_hash_value
+AND    b.sid = $1
+ORDER BY a.piece;
+
 EXIT
 EOF

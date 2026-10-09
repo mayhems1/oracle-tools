@@ -1,6 +1,11 @@
 #!/bin/bash
+# Datafiles of all tablespaces: size, max size, autoextend
+
+# Load Oracle env for non-login shells (e.g. ssh host 'script')
+[ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
 
 sqlplus -S -L / as sysdba << EOF
+WHENEVER SQLERROR EXIT FAILURE
 SET LINESIZE 200
 COLUMN file_name FORMAT A70
 
@@ -13,5 +18,6 @@ SELECT file_id,
        status
 FROM   dba_data_files
 ORDER BY file_name;
-quit
+
+EXIT
 EOF

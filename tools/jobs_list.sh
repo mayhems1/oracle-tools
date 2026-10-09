@@ -1,6 +1,11 @@
 #!/bin/bash
+# Scheduler jobs: all
 
-sqlplus -s "/ as sysdba" <<EOF
+# Load Oracle env for non-login shells (e.g. ssh host 'script')
+[ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
+
+sqlplus -S -L / as sysdba << EOF
+WHENEVER SQLERROR EXIT FAILURE
 SELECT JOB_NAME, STATE, JOB_CREATOR FROM DBA_SCHEDULER_JOBS ORDER BY JOB_NAME;
-exit;
+EXIT
 EOF

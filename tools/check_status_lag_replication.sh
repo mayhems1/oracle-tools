@@ -1,6 +1,11 @@
 #!/bin/bash
+# Data Guard: archived vs applied log sequence gap per thread (2-node RAC, DEST_ID 1 -> 2)
+
+# Load Oracle env for non-login shells (e.g. ssh host 'script')
+[ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
 
 sqlplus -S -L / as sysdba << EOF
+WHENEVER SQLERROR EXIT FAILURE
 SELECT DB_NAME,  APPLIED_TIME, LOG_ARCHIVED-LOG_APPLIED LOG_GAP, (case when ((APPLIED_TIME is not null and (LOG_ARCHIVED-LOG_APPLIED) is null) or
 (APPLIED_TIME is null and (LOG_ARCHIVED-LOG_APPLIED) is not null) or
 ((LOG_ARCHIVED-LOG_APPLIED) > 5)) then 'Error! Log Gap is '
@@ -21,5 +26,5 @@ from (SELECT INSTANCE_NAME DB_NAME FROM GV\$INSTANCE where INST_ID = 2),
 (SELECT MAX(SEQUENCE#) LOG_ARCHIVED FROM V\$ARCHIVED_LOG WHERE DEST_ID=1 AND ARCHIVED='YES' and THREAD#=2),
 (SELECT MAX(SEQUENCE#) LOG_APPLIED FROM V\$ARCHIVED_LOG WHERE DEST_ID=2 AND APPLIED='YES' and THREAD#=2),
 (SELECT TO_CHAR(MAX(COMPLETION_TIME),'DD-MON/HH24:MI') APPLIED_TIME FROM V\$ARCHIVED_LOG WHERE DEST_ID=2 AND APPLIED='YES' and THREAD#=2);
-quit
+EXIT
 EOF

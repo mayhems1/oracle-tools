@@ -1,11 +1,21 @@
 #!/bin/bash
+# Session full info by SPID
+# Usage: sessions_spid_info_full.sh <SPID>
+
+# Load Oracle env for non-login shells (e.g. ssh host 'script')
+[ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
 
 if [ "$#" -eq 0 ]; then
   echo "Error: Session SPID is not defined."
   exit 1
 fi
+if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+  echo "Error: Session SPID must be a number."
+  exit 1
+fi
 
 sqlplus -S -L / as sysdba << EOF
+WHENEVER SQLERROR EXIT FAILURE
 SET LINESIZE 500 PAGESIZE 1000 VERIFY OFF
 
 COLUMN username FORMAT A30
@@ -35,9 +45,8 @@ SELECT NVL(s.username, '(oracle)') AS username,
 FROM   v\$session s,
        v\$process p
 WHERE  s.paddr = p.addr
-AND    p.spid = $1
+AND    p.spid = '$1'
 ORDER BY s.username, s.osuser;
 
-SET PAGESIZE 14
-quit
+EXIT
 EOF

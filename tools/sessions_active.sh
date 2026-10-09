@@ -1,6 +1,11 @@
 #!/bin/bash
+# Active sessions (user and background)
+
+# Load Oracle env for non-login shells (e.g. ssh host 'script')
+[ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
 
 sqlplus -S -L / as sysdba << EOF
+WHENEVER SQLERROR EXIT FAILURE
 SET LINESIZE 500
 SET PAGESIZE 1000
 
@@ -33,5 +38,5 @@ WHERE  s.paddr  = p.addr
 AND    s.status = 'ACTIVE'
 ORDER BY s.username, s.osuser;
 
-SET PAGESIZE 14
+EXIT
 EOF

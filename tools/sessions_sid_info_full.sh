@@ -1,11 +1,21 @@
 #!/bin/bash
+# Session full info by SID
+# Usage: sessions_sid_info_full.sh <SID>
+
+# Load Oracle env for non-login shells (e.g. ssh host 'script')
+[ -z "$ORACLE_SID" ] && [ -f "$HOME/.bash_profile" ] && . "$HOME/.bash_profile" > /dev/null 2>&1
 
 if [ "$#" -eq 0 ]; then
   echo "Error: Session SID is not defined."
   exit 1
 fi
+if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+  echo "Error: Session SID must be a number."
+  exit 1
+fi
 
 sqlplus -S -L / as sysdba << EOF
+WHENEVER SQLERROR EXIT FAILURE
 SET LINESIZE 500 PAGESIZE 1000 VERIFY OFF
 
 COLUMN username FORMAT A30
@@ -38,6 +48,5 @@ WHERE  s.paddr = p.addr
 AND    s.sid = $1
 ORDER BY s.username, s.osuser;
 
-SET PAGESIZE 14
-quit
+EXIT
 EOF
